@@ -12,6 +12,9 @@
   "files": [
     "build"
   ],
+  "enginers": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "nodemon --watch 'src/**' --ext 'ts,json' --ignore 'src/**/*.spec.ts' --exec 'tsx src/index.ts'",
     "dev:sse": "nodemon --watch 'src/**' --ext 'ts,json' --ignore 'src/**/*.spec.ts' --exec 'tsx src/sse.ts'",

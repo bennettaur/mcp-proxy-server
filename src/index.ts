@@ -5,13 +5,15 @@ import { createServer } from "./mcp-proxy.js";
 
 async function main() {
   const transport = new StdioServerTransport();
-  const { server, cleanup } = await createServer();
+  const proxyService = await createServer();
+  const mcpServer = proxyService.mcpServer;
+  const cleanupProxy = proxyService.cleanup.bind(proxyService);
 
-  await server.connect(transport);
+  await mcpServer.connect(transport);
 
   process.on("SIGINT", async () => {
-    await cleanup();
-    await server.close();
+    await cleanupProxy();
+    await mcpServer.close();
     process.exit(0);
   });
 }

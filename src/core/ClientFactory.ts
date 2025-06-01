@@ -1,9 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport, SSEClientTransportOptions } from '@modelcontextprotocol/sdk/client/sse.js';
+import { SSEClientTransport, type SSEClientTransportOptions } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { StreamableHTTPClientTransport, StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { TransportConfig, isSSEConfig, isStdioConfig, isHttpConfig } from './config.js';
+import { StreamableHTTPClientTransport, type StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { type TransportConfig, isSSEConfig, isStdioConfig, isHttpConfig } from './ConfigService.js';
 import { EventSource } from 'eventsource';
 
 const sleep = (time: number) => new Promise<void>(resolve => setTimeout(() => resolve(), time))
@@ -30,12 +30,9 @@ const createClient = (name: string, transportConfig: TransportConfig): { client:
       }
 
       if (customHeaders) {
-          // Apply custom headers to requestInit for POST requests
           transportOptions.requestInit = {
               headers: customHeaders,
           };
-
-          // Apply custom headers to eventSourceInit.fetch for GET requests
           const headersToAdd = customHeaders;
           transportOptions.eventSourceInit = {
               fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
@@ -83,13 +80,11 @@ const createClient = (name: string, transportConfig: TransportConfig): { client:
       if (customHeaders) {
         transportOptions.requestInit = { headers: customHeaders };
       }
-      // Note: StreamableHTTPClientTransport handles session ID internally if configured.
-      // We might pass transportConfig.sessionId if we want to force a specific one.
       transport = new StreamableHTTPClientTransport(new URL(transportConfig.url), transportOptions);
     } else {
       console.error(`Invalid or unknown transport type in configuration for server: ${name}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     let transportType = 'unknown';
     if (isSSEConfig(transportConfig)) transportType = 'sse';
     else if (isStdioConfig(transportConfig)) transportType = 'stdio';
@@ -116,7 +111,7 @@ const createClient = (name: string, transportConfig: TransportConfig): { client:
   return { client, transport }
 }
 
-export const createClients = async (mcpServers: Record<string, TransportConfig>): Promise<ConnectedClient[]> => {
+export const createMcpClients = async (mcpServers: Record<string, TransportConfig>): Promise<ConnectedClient[]> => {
   const clients: ConnectedClient[] = [];
 
   for (const [name, transportConfig] of Object.entries(mcpServers)) {
@@ -148,7 +143,7 @@ export const createClients = async (mcpServers: Record<string, TransportConfig>)
 
         break
 
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to connect to ${name}:`, error);
         count++;
         retry = (count < retries);
@@ -160,10 +155,7 @@ export const createClients = async (mcpServers: Record<string, TransportConfig>)
           await sleep(waitFor);
         }
       }
-
     }
-
   }
-
   return clients;
 };
